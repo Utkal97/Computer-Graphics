@@ -129,24 +129,28 @@ void drawArc(int ptX1, int ptY1, int ptX2, int ptY2, int ptX3, int ptY3) {
 	struct point C = findCenter( ptX1, ptY1, ptX2, ptY2, ptX3,  ptY3);
 	printf("Center of circle: %d %d", C.X, C.Y);
 
-	struct pt1, pt2, testPt, currentPt;
+	struct pt1; 
+	struct pt2;
+	struct testPt;
+	struct currentPt;
+
 	pt1.X = ptX1;
 	pt1.Y = ptY1;
-	pt2.X = ptX2;
-	pt2.Y = ptY2;
-	testPt.X = ptX3;
-	testPt.Y = ptY3;
+	pt2.X = ptX3;
+	pt2.Y = ptY3;
+	testPt.X = ptX2;
+	testPt.Y = ptY2;
 
-	const radius = (int)(sqrt( pow((pt1.X-C.X),2) + pow((pt1.Y - C.Y),2) ));
+	int radius = (int)(sqrt( pow((pt1.X-C.X),2) + pow((pt1.Y - C.Y),2) ));
 	
-	currentPt.X = 0;
-	currentPt.Y = radius;
+	currentPt.X = C.X + 0;
+	currentPt.Y = C.Y + radius;
 
 	if(pointLiesOnArc(pt1, pt2, testPt, currentPt)) {
 		drawPixel(currentPt.X, currentPt.Y);
 	}
 
-	float decisionParameter	= 5/4 - radius;
+	float decisionParameter	= (5/4) - radius;
 
 	while(currentPt.X <= currentPt.Y) {
 		
@@ -162,6 +166,7 @@ void drawArc(int ptX1, int ptY1, int ptX2, int ptY2, int ptX3, int ptY3) {
 		if(pointLiesOnArc(pt1, pt2, testPt, currentPt)) {
 			drawPixel(currentPt.X, currentPt.Y);
 		}
+
 		struct currentPt2;
 		struct currentPt3;
 		struct currentPt4;
