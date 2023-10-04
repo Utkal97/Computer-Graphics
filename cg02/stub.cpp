@@ -152,7 +152,7 @@ void drawArc(int ptX1, int ptY1, int ptX2, int ptY2, int ptX3, int ptY3) {
 
 	float decisionParameter	= (5/4) - radius;
 
-	while(currentPt.X <= currentPt.Y) {
+	while(currentPt.X >= currentPt.Y) {
 		
 		currentPt.X += 1;
 		
@@ -167,56 +167,48 @@ void drawArc(int ptX1, int ptY1, int ptX2, int ptY2, int ptX3, int ptY3) {
 			drawPixel(currentPt.X, currentPt.Y);
 		}
 
-		struct currentPt2;
-		struct currentPt3;
-		struct currentPt4;
-		struct currentPt5;
-		struct currentPt6;
-		struct currentPt7;
-		struct currentPt8;
+		struct similarPt;
 
-		currentPt2.X = currentPt.Y;
-		currentPt2.Y = currentPt.X;
-
-		currentPt3.X = -1*currentPt.Y;
-		currentPt3.Y = currentPt.X;
-
-		currentPt4.X = -1*currentPt.X;
-		currentPt4.Y = currentPt.Y;
-
-		currentPt5.X = -1*currentPt.X;
-		currentPt5.Y = -1*currentPt.Y;
-
-		currentPt6.X = -1*currentPt.Y;
-		currentPt6.Y = -1*currentPt.X;
-
-		currentPt7.X = currentPt.Y;
-		currentPt7.Y = -1*currentPt.X;
-
-		currentPt8.X = currentPt.X;
-		currentPt8.Y = -1*currentPt.y;
-
-
-		if(pointLiesOnArc(pt1, pt2, testPt, currentPt2)) {
-			drawPixel(currentPt2.X, currentPt2.Y);
+		similarPt.X = currentPt.Y;
+		similarPt.Y = currentPt.X;
+		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
+			drawPixel(similarPt.X, similarPt.Y);
 		}
-		if(pointLiesOnArc(pt1, pt2, testPt, currentPt3)) {
-			drawPixel(currentPt3.X, currentPt3.Y);
+
+		similarPt.X = -1*currentPt.Y;
+		similarPt.Y = currentPt.X;
+		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
+			drawPixel(similarPt.X, similarPt.Y);
 		}
-		if(pointLiesOnArc(pt1, pt2, testPt, currentPt4)) {
-			drawPixel(currentPt4.X, currentPt4.Y);
+
+		similarPt.X = -1*currentPt.X;
+		similarPt.Y = currentPt.Y;
+		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
+			drawPixel(similarPt.X, similarPt.Y);
 		}
-		if(pointLiesOnArc(pt1, pt2, testPt, currentPt5)) {
-			drawPixel(currentPt5.X, currentPt5.Y);
+
+		similarPt.X = -1*currentPt.X;
+		similarPt.Y = -1*currentPt.Y;
+		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
+			drawPixel(similarPt.X, similarPt.Y);
 		}
-		if(pointLiesOnArc(pt1, pt2, testPt, currentPt6)) {
-			drawPixel(currentPt6.X, currentPt6.Y);
+
+		similarPt.X = -1*currentPt.Y;
+		similarPt.Y = -1*currentPt.X;
+		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
+			drawPixel(similarPt.X, similarPt.Y);
 		}
-		if(pointLiesOnArc(pt1, pt2, testPt, currentPt7)) {
-			drawPixel(currentPt7.X, currentPt7.Y);
+
+		similarPt.X = currentPt.Y;
+		similarPt.Y = -1*currentPt.X;
+		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
+			drawPixel(similarPt.X, similarPt.Y);
 		}
-		if(pointLiesOnArc(pt1, pt2, testPt, currentPt8)) {
-			drawPixel(currentPt8.X, currentPt8.Y);
+
+		similarPt.X = currentPt.X;
+		similarPt.Y = -1*currentPt.y;
+		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
+			drawPixel(similarPt.X, similarPt.Y);
 		}
 	}
 
@@ -228,7 +220,86 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 	drawPixel(ptX1, ptY1);
 	drawPixel(ptX2, ptY2);
 	drawPixel(centerX, centerY);
-	//replace above three lines with your code
+
+	struct p1;
+	struct p2;
+	struct C;
+	
+	p1.X = ptX1;
+	p1.Y = ptY1;
+	p2.X = ptX2;
+	p2.Y = ptY2;
+	C.X = centerX;
+	C.Y = centerY;
+	
+	int rY = (int)(sqrt( ( ( pow(p1.X-C.X, 2) * (p2.Y-p1.Y) * (p2.Y+p1.Y-2*C.Y) ) / ( (p1.X-p2.X)*(p1.X+p2.X-(2*C.X)) ) ) + pow((p1.Y-C.Y),2) ));
+	int rX = (int)(rY * sqrt( ((p1.X-p2.X)*(p1.X+p2.X-2*C.X)) / ((p2.Y-p1.Y)*(p2.Y+p1.Y-2*C.Y)) ));
+
+	//Region 1
+	struct currentPt;
+	currentPt.X = centerX + 0;
+	currentPt.Y = centerY + rY;
+
+	float region1DecisionParameter = pow(rY,2) - (pow(rX,2)*rY) + (pow(rX,2)/4);
+
+	while( 2*pow(rY,2)*currentPt.X >= 2*pow(rX,2)*currentPt.Y ) {	//RECHECK THIS CONDITION
+		
+		drawPixel(currentPt.X, currentPt.Y);
+
+		currentPt.X += 1;
+		if(region1DecisionParameter < 0) {
+			region1DecisionParameter += 2*pow(rY,2)*currentPt.X + pow(rY,2);
+		} else {
+			currentPt.Y -= 1;
+			region1DecisionParameter += 2*pow(rY,2)*currentPt.X + pow(rY,2) - 2*pow(rX,2)*currentPt.X;
+		}
+
+		struct similarPt;
+		similarPt.X = -1 * currentPt.X;
+		similarPt.Y = currentPt.Y;
+		drawPixel(similarPt.X, similarPt.Y);
+
+		similarPt.X = -1 * currentPt.X;
+		similarPt.Y = -1 * currentPt.Y;
+		drawPixel(similarPt.X, similarPt.Y);
+
+		similarPt.X = currentPt.X;
+		similarPt.Y = -1 * currentPt.Y;
+		drawPixel(similarPt.X, similarPt.Y);
+	}
+
+	//Region2
+	float region2DecisionParameter = pow(rY,2)*pow(currentPt.X + 0.5,2) 
+									 + pow(rX,2)*pow(currentPt.Y-1,2)
+									 - pow(rX,2)*pow(rY, 2);
+
+	while(y>=0) {	//RECHECK THE CONDITION
+
+		drawPixel(currentPt.X, currentPt.Y);
+
+		currentPt.Y -= 1;
+		if(region2DecisionParameter > 0) {
+			region2DecisionParameter += pow(rX,2) - 2*pow(rX,2)*currentPt.Y;
+ 		} else {
+			currentPt.X += 1;
+			region2DecisionParameter += pow(rX,2) - 2*pow(rX,2)*currentPt.Y + 2*pow(rY,2)*currentPt.X;
+		}
+
+		struct similarPt;
+		similarPt.X = -1 * currentPt.X;
+		similarPt.Y = currentPt.Y;
+		drawPixel(similarPt.X, similarPt.Y);
+
+		similarPt.X = -1 * currentPt.X;
+		similarPt.Y = -1 * currentPt.Y;
+		drawPixel(similarPt.X, similarPt.Y);
+
+		similarPt.X = currentPt.X;
+		similarPt.Y = -1 * currentPt.Y;
+		drawPixel(similarPt.X, similarPt.Y);
+	}
+
+	return;
 }
 
 void drawPoly(int ptX1, int ptY1, int ptX2, int ptY2)
