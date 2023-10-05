@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 /***************************************************************************/
 // Forward declarations
 void drawPixel(int x, int y);
@@ -154,7 +155,7 @@ void drawArc(int ptX1, int ptY1, int ptX2, int ptY2, int ptX3, int ptY3) {
 	}
 
 	float decisionParameter	= (5/4) - radius;
-	printf("X:%d Y:%d\n", &currentPt.X, &currentPt.Y);
+	printf("Starting to plot from X:%d Y:%d\n", &currentPt.X, &currentPt.Y);
 	
 	while(currentPt.X <= currentPt.Y) {
 		
