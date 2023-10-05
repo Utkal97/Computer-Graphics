@@ -130,7 +130,7 @@ bool pointLiesOnArc(struct Point pt1, struct Point pt2, struct Point comparePt, 
 void drawArc(int ptX1, int ptY1, int ptX2, int ptY2, int ptX3, int ptY3) {
 	
 	struct Point C = findCenter( ptX1, ptY1, ptX2, ptY2, ptX3,  ptY3);
-	printf("Center of circle: %d %d", C.X, C.Y);
+	printf("Center of circle: %d %d\n", &C.X, &C.Y);
 
 	struct Point pt1; 
 	struct Point pt2;
@@ -154,8 +154,9 @@ void drawArc(int ptX1, int ptY1, int ptX2, int ptY2, int ptX3, int ptY3) {
 	}
 
 	float decisionParameter	= (5/4) - radius;
-
-	while(currentPt.X >= currentPt.Y) {
+	printf("X:%d Y:%d\n", &currentPt.X, &currentPt.Y);
+	
+	while(currentPt.X <= currentPt.Y) {
 		
 		currentPt.X += 1;
 		
