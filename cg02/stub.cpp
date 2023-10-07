@@ -259,9 +259,7 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 	drawPixel(ptX2, ptY2);
 	drawPixel(centerX, centerY);
 
-	struct Point p1;
-	struct Point p2;
-	struct Point C;
+	struct Point p1, p2, C;
 	
 	p1.X = ptX1;
 	p1.Y = ptY1;
@@ -275,68 +273,71 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 
 	//Region 1
 	struct Point currentPt;
-	currentPt.X = centerX + 0;
-	currentPt.Y = centerY + rY;
-
+	int X = 0, Y = rY;
+	printf("rX: %d , rY:%d\n", rX, rY);
 	float region1DecisionParameter = pow(rY,2) - (pow(rX,2)*rY) + (pow(rX,2)/4);
 
-	while( (2*pow(rY,2)*currentPt.X) >= (2*pow(rX,2)*currentPt.Y) ) {	//RECHECK THIS CONDITION
-		
-		drawPixel(currentPt.X, currentPt.Y);
+	while( (2*pow(rY,2) * X) < (2*pow(rX,2) * Y) ) {	//RECHECK THIS CONDITION
+		currentPt.X = centerX + X;
+		currentPt.Y = centerY + Y;
+		printf("Plotting (%f, %f) , where X: %d, Y: %d\n", currentPt.X, currentPt.Y, X, Y );
+		drawPixel((int)currentPt.X, (int)currentPt.Y);
 
-		currentPt.X += 1;
+		X += 1;
 		if(region1DecisionParameter < 0) {
-			region1DecisionParameter += 2*pow(rY,2)*currentPt.X + pow(rY,2);
+			region1DecisionParameter += 2*pow(rY,2)*X + pow(rY,2);
 		} else {
-			currentPt.Y -= 1;
-			region1DecisionParameter += 2*pow(rY,2)*currentPt.X + pow(rY,2) - 2*pow(rX,2)*currentPt.X;
+			Y -= 1;
+			region1DecisionParameter += 2*pow(rY,2)*X + pow(rY,2) - 2*pow(rX,2)*Y;
 		}
 
-		struct Point similarPt;
-		similarPt.X = -1 * currentPt.X;
-		similarPt.Y = currentPt.Y;
-		drawPixel(similarPt.X, similarPt.Y);
+		currentPt.X = centerX - X;
+		currentPt.Y = centerY + Y;
+		drawPixel((int)currentPt.X, (int)currentPt.Y);
 
-		similarPt.X = -1 * currentPt.X;
-		similarPt.Y = -1 * currentPt.Y;
-		drawPixel(similarPt.X, similarPt.Y);
+		currentPt.X = centerX - X;
+		currentPt.Y = centerY - Y;
+		drawPixel((int)currentPt.X, (int)currentPt.Y);
 
-		similarPt.X = currentPt.X;
-		similarPt.Y = -1 * currentPt.Y;
-		drawPixel(similarPt.X, similarPt.Y);
+		currentPt.X = centerX + X;
+		currentPt.Y = centerY - Y;
+		drawPixel((int)currentPt.X, (int)currentPt.Y);
 	}
+	printf("Region 1 is drawn, X: %d, Y: %d\n", X,Y);
 
 	//Region 2
-	float region2DecisionParameter = pow(rY,2)*pow(currentPt.X + 0.5,2) 
-									 + pow(rX,2)*pow(currentPt.Y-1,2)
+	float region2DecisionParameter = pow(rY,2)*pow(X + 0.5,2) 
+									 + pow(rX,2)*pow(Y-1,2)
 									 - pow(rX,2)*pow(rY, 2);
 
-	while(currentPt.Y>=0) {	//RECHECK THE CONDITION
+	while(Y>=0) {	//RECHECK THE CONDITION
 
-		drawPixel(currentPt.X, currentPt.Y);
+		currentPt.X = centerX + X;
+		currentPt.Y = centerY + Y;
+		printf("Plotting (%f, %f) , where X: %d, Y: %d\n", currentPt.X, currentPt.Y, X, Y );
+		drawPixel((int)currentPt.X, (int)currentPt.Y);
 
-		currentPt.Y -= 1;
+		Y -= 1;
 		if(region2DecisionParameter > 0) {
-			region2DecisionParameter += pow(rX,2) - 2*pow(rX,2)*currentPt.Y;
+			region2DecisionParameter += pow(rX,2) - 2*pow(rX,2)*Y;
  		} else {
-			currentPt.X += 1;
-			region2DecisionParameter += pow(rX,2) - 2*pow(rX,2)*currentPt.Y + 2*pow(rY,2)*currentPt.X;
+			X += 1;
+			region2DecisionParameter += pow(rX,2) - 2*pow(rX,2)*Y + 2*pow(rY,2)*X;
 		}
 
-		struct Point similarPt;
-		similarPt.X = -1 * currentPt.X;
-		similarPt.Y = currentPt.Y;
-		drawPixel(similarPt.X, similarPt.Y);
+		currentPt.X = centerX - X;
+		currentPt.Y = centerY + Y;
+		drawPixel((int)currentPt.X, (int)currentPt.Y);
 
-		similarPt.X = -1 * currentPt.X;
-		similarPt.Y = -1 * currentPt.Y;
-		drawPixel(similarPt.X, similarPt.Y);
+		currentPt.X = centerX - X;
+		currentPt.Y = centerY - Y;
+		drawPixel((int)currentPt.X, (int)currentPt.Y);
 
-		similarPt.X = currentPt.X;
-		similarPt.Y = -1 * currentPt.Y;
-		drawPixel(similarPt.X, similarPt.Y);
+		currentPt.X = centerX + X;
+		currentPt.Y = centerY - Y;
+		drawPixel((int)currentPt.X, (int)currentPt.Y);
 	}
-
+	printf("Ellipse is drawn\n");
 	return;
 }
 
