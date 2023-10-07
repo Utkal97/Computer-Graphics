@@ -61,44 +61,78 @@ void drawCubicBezier(int* ptX, int* ptY) {
 /***************************************************************************/
 
 struct Point {
-	int X, Y;
+	float X, Y;
 };
 
-struct Point findCenter(int x1, int y1, int x2, int y2, int x3, int y3) {
+struct Point findCenterWithPerpendicularBisectors(struct Point P1, struct Point P2, struct Point P3) {
 
 	struct Point C;
 	C.X = 0;
 	C.Y = 0;
 
-	float midPtX12 = (x1 + x2) / 2, midPtY12 = (y1 + y2) / 2,	//Mid Point of 1st chord: pt1-pt2
-		slope12 = (x1!=x2) ? (y2 - y1) / (x2 - x1) : 0;						//Slope of 1st chord
+	float midPtX12 = (P1.X + P2.X) / 2, midPtY12 = (P1.Y + P2.Y) / 2,	//Mid Point of 1st chord: pt1-pt2
+		slope12 = (P1.X!=P2.X) ? (P2.Y - P1.Y) / (P2.X - P1.X) : 0;						//Slope of 1st chord
 	
-	float midPtX23 = (x2 + x3) / 2, midPtY23 = (y2 + y3) / 2,	//Mid Point of 2nd chord: pt2-pt3
- 		slope23 = (x2!=x3) ? (y3 - y2) / (x3 - x2) : 0;						//Slope of 2nd chord
+	float midPtX23 = (P2.X + P3.X) / 2, midPtY23 = (P2.Y + P3.Y) / 2,	//Mid Point of 2nd chord: pt2-pt3
+ 		slope23 = (P2.X!=P3.X) ? (P3.Y - P2.Y) / (P3.X - P2.X) : 0;						//Slope of 2nd chord
 
-	float a1 = (x1 != x2) ? (1/slope12) : 0, 
+	float a1 = (P1.X != P2.X) ? 1/slope12 : 0, 
 		  b1 = 1, 
-		  c1 = (x1 != x2) ? (-1 * (midPtY12 + (midPtX12/slope12))) : (-1 * midPtY12),
-		  a2 = (x2 != x3) ? (1/slope23) : 0, 
+		  c1 = (P1.X != P2.X) ? (-1 * (midPtY12 + (midPtX12/slope12))) : (-1 * midPtY12),
+		  a2 = (P2.X != P3.X) ? 1/slope23 : 0, 
 		  b2 = 1,
-		  c2 = (x2 != x3) ? (-1 * (midPtY23 + (midPtX23/slope23))) : (-1 * midPtY23);
+		  c2 = (P2.X != P3.X) ? (-1 * (midPtY23 + (midPtX23/slope23))) : (-1 * midPtY23);
 
 	if((a1*b2 - a2*b1)==0) {
-		printf("Circle drawing is impossible\n");
+		printf("Finding Circle center is impossible\n");
 		return C;
 	}
 
-	C.X = (int)(((b1 * c2) - (b2 * c1)) / ((a1 * b2) - (a2 * b1)));
-	C.Y = (int)(((c1 * a2) - (c2 * a1)) / ((a1 * b2) - (a2 * b1)));
+	// printf("Line equation 1: %fx + %fy + %f = 0\n",a1,b1,c1);
+	// printf("Line equation 2: %fx + %fy + %f = 0\n",a2,b2,c2);
+
+	C.X = (((b1 * c2) - (b2 * c1)) / ((a1 * b2) - (a2 * b1)));
+	C.Y = (((c1 * a2) - (c2 * a1)) / ((a1 * b2) - (a2 * b1)));
 
 	return C;
+}
+
+struct Point findCenterWithSubstitution(struct Point P1, struct Point P2, struct Point P3) {
+ 
+
+    float sx13 = pow(P1.X, 2) - pow(P3.X, 2);
+    float sx21 = pow(P2.X, 2) - pow(P1.X, 2);
+ 
+    float sy13 = pow(P1.Y, 2) - pow(P3.Y, 2);
+    float sy21 = pow(P2.Y, 2) - pow(P1.Y, 2);
+ 
+    float f = ((sx13) * (P1.X - P2.X)
+             + (sy13) * (P1.X - P2.X)
+             + (sx21) * (P1.X - P3.X)
+             + (sy21) * (P1.X - P3.X))
+            / (2 * ((P3.Y - P1.Y) * (P1.X - P2.X) - (P2.Y - P1.Y) * (P1.X -P3.X)));
+
+    float g = ((sx13) * (P1.Y - P2.Y)
+             + (sy13) * (P1.Y - P2.Y)
+             + (sx21) * (P1.Y - P3.Y)
+             + (sy21) * (P1.Y - P3.Y))
+            / (2 * ((P3.X - P1.X) * (P1.Y - P2.Y) - (P2.X - P1.X) * (P1.Y - P3.Y)));
+ 
+    // int c = -pow(P1.X, 2) - pow(P1.Y, 2) - 2 * g * P1.X - 2 * f * P1.Y;
+ 
+    // eqn of circle be x^2 + y^2 + 2*g*x + 2*f*y + c = 0
+    // where centre is (h = -g, k = -f) and radius r
+    // as r^2 = h^2 + k^2 - c
+	struct Point C;
+    C.X = -g;
+    C.Y = -f;
+	return C; 
 }
 
 /*
 	Checks whether given point "currentPt" lies on the arc from pt1 to pt2, where testPt is a point on arc
 */
 bool pointLiesOnArc(struct Point pt1, struct Point pt2, struct Point comparePt, struct Point currentPt) {
-
 	//If X1, X2 are same, slope will be infinite, here we need to check X cordinates
 	if(pt1.X == pt2.X) {
 		return ((comparePt.X - pt1.X) * (currentPt.X - pt1.X)) >= 0;
@@ -119,7 +153,7 @@ bool pointLiesOnArc(struct Point pt1, struct Point pt2, struct Point comparePt, 
 		currentPointWithLineEquation = a*currentPt.X + b*currentPt.Y + c;
 
 	if(comparePointWithLineEquation == 0) {
-		printf("Cannot draw circle, since the third point is lieing on the chord\n");
+		printf("Cannot draw circle, since the third point is lying on the chord\n");
 		return false;
 	} else if(comparePointWithLineEquation * currentPointWithLineEquation > 0) {	//If both are on same side
 		return true;
@@ -129,91 +163,90 @@ bool pointLiesOnArc(struct Point pt1, struct Point pt2, struct Point comparePt, 
 }
 
 void drawArc(int ptX1, int ptY1, int ptX2, int ptY2, int ptX3, int ptY3) {
-	
-	struct Point C = findCenter( ptX1, ptY1, ptX2, ptY2, ptX3,  ptY3);
-	printf("Center of circle: %d %d\n", &C.X, &C.Y);
 
-	struct Point pt1; 
-	struct Point pt2;
-	struct Point testPt;
+	struct Point P1, P2, P3;
+	P1.X = ptX1;
+	P1.Y = ptY1;
+	P2.X = ptX2;
+	P2.Y = ptY2;
+	P3.X = ptX3;
+	P3.Y = ptY3;
+	
+	struct Point C = findCenterWithSubstitution( P1, P2, P3);
+	// printf("Center of circle: (%f, %f)\n", C.X, C.Y);
+	// drawPixel(C.X, C.Y);
+	
 	struct Point currentPt;
 
-	pt1.X = ptX1;
-	pt1.Y = ptY1;
-	pt2.X = ptX3;
-	pt2.Y = ptY3;
-	testPt.X = ptX2;
-	testPt.Y = ptY2;
+	float radius = (sqrt( pow( (P1.X - C.X), 2 ) + pow( (P1.Y - C.Y), 2 ) ));
 
-	int radius = (int)(sqrt( pow( (pt1.X - C.X), 2 ) + pow( (pt1.Y - C.Y), 2 ) ));
-	
-	currentPt.X = C.X + 0;
-	currentPt.Y = C.Y + radius;
+	int X = 0, Y = (int)radius;
 
-	if(pointLiesOnArc(pt1, pt2, testPt, currentPt)) {
+	currentPt.X = (int)(C.X + X);
+	currentPt.Y = (int)(C.Y + Y);
+	if(pointLiesOnArc(P1, P3, P2, currentPt)) {
 		drawPixel(currentPt.X, currentPt.Y);
 	}
 
-	float decisionParameter	= (5/4) - radius;
-	printf("Starting to plot from X:%d Y:%d\n", &currentPt.X, &currentPt.Y);
-	
-	while(currentPt.X <= currentPt.Y) {
+	float decisionParameter	= 1 - radius;
+
+	while(X <= Y) {
 		
-		currentPt.X += 1;
-		
+		X += 1;
+
 		if(decisionParameter < 0) {
-			decisionParameter += 2*(currentPt.X) + 1;
+			decisionParameter += 2*(X) + 1;
 		} else {
-			currentPt.Y -= 1;
-			decisionParameter += 2*(currentPt.X) + 1 - 2*(currentPt.Y);
+			Y -= 1;
+			decisionParameter += 2*(X) + 1 - 2*(Y);
 		}
 
-		if(pointLiesOnArc(pt1, pt2, testPt, currentPt)) {
+		currentPt.X = (int)(C.X + X);
+		currentPt.Y = (int)(C.Y + Y);
+		if(pointLiesOnArc(P1, P3, P2, currentPt)) {
 			drawPixel(currentPt.X, currentPt.Y);
 		}
 
-		struct Point similarPt;
-
-		similarPt.X = currentPt.Y;
-		similarPt.Y = currentPt.X;
-		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
-			drawPixel(similarPt.X, similarPt.Y);
+		currentPt.X = (int)(C.X - X);
+		currentPt.Y = (int)(C.Y + Y);
+		if(pointLiesOnArc(P1, P3, P2, currentPt)) {
+			drawPixel(currentPt.X, currentPt.Y);
 		}
 
-		similarPt.X = -1*currentPt.Y;
-		similarPt.Y = currentPt.X;
-		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
-			drawPixel(similarPt.X, similarPt.Y);
+		currentPt.X = (int)(C.X - Y);
+		currentPt.Y = (int)(C.Y + X);
+		if(pointLiesOnArc(P1, P3, P2, currentPt)) {
+			drawPixel(currentPt.X, currentPt.Y);
 		}
 
-		similarPt.X = -1*currentPt.X;
-		similarPt.Y = currentPt.Y;
-		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
-			drawPixel(similarPt.X, similarPt.Y);
+		currentPt.X = (int)(C.X - Y);
+		currentPt.Y = (int)(C.Y - X);
+		if(pointLiesOnArc(P1, P3, P2, currentPt)) {
+			drawPixel(currentPt.X, currentPt.Y);
 		}
 
-		similarPt.X = -1*currentPt.X;
-		similarPt.Y = -1*currentPt.Y;
-		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
-			drawPixel(similarPt.X, similarPt.Y);
+		currentPt.X = (int)(C.X - X);
+		currentPt.Y = (int)(C.Y - Y);
+		if(pointLiesOnArc(P1, P3, P2, currentPt)) {
+			drawPixel(currentPt.X, currentPt.Y);
 		}
 
-		similarPt.X = -1*currentPt.Y;
-		similarPt.Y = -1*currentPt.X;
-		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
-			drawPixel(similarPt.X, similarPt.Y);
+		currentPt.X = (int)(C.X + X);
+		currentPt.Y = (int)(C.Y - Y);
+		if(pointLiesOnArc(P1, P3, P2, currentPt)) {
+			drawPixel(currentPt.X, currentPt.Y);
 		}
 
-		similarPt.X = currentPt.Y;
-		similarPt.Y = -1*currentPt.X;
-		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
-			drawPixel(similarPt.X, similarPt.Y);
+		currentPt.X = (int)(C.X + Y);
+		currentPt.Y = (int)(C.Y - X);
+		if(pointLiesOnArc(P1, P3, P2, currentPt)) {
+			drawPixel(currentPt.X, currentPt.Y);
 		}
 
-		similarPt.X = currentPt.X;
-		similarPt.Y = -1*currentPt.Y;
-		if(pointLiesOnArc(pt1, pt2, testPt, similarPt)) {
-			drawPixel(similarPt.X, similarPt.Y);
+		currentPt.X = (int)(C.X + Y);
+		currentPt.Y = (int)(C.Y + X);
+		if(pointLiesOnArc(P1, P3, P2, currentPt)) {
+			drawPixel(currentPt.X, currentPt.Y);
 		}
 	}
 
