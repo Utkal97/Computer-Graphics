@@ -259,17 +259,22 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 	drawPixel(ptX2, ptY2);
 	drawPixel(centerX, centerY);
 
-	struct Point p1, p2, C;
+	struct Point P1, P2, C;
 	
-	p1.X = ptX1;
-	p1.Y = ptY1;
-	p2.X = ptX2;
-	p2.Y = ptY2;
+	P1.X = ptX1;
+	P1.Y = ptY1;
+	P2.X = ptX2;
+	P2.Y = ptY2;
 	C.X = centerX;
 	C.Y = centerY;
 	
-	int rY = (int)(sqrt( ( ( pow(p1.X-C.X, 2) * (p2.Y-p1.Y) * (p2.Y+p1.Y-2*C.Y) ) / ( (p1.X-p2.X)*(p1.X+p2.X-(2*C.X)) ) ) + pow((p1.Y-C.Y),2) ));
-	int rX = (int)(rY * sqrt( ((p1.X-p2.X)*(p1.X+p2.X-2*C.X)) / ((p2.Y-p1.Y)*(p2.Y+p1.Y-2*C.Y)) ));
+	int rYNumerator = pow(P2.Y - C.Y,2)*pow(P1.X-C.X,2) - pow(P2.X-C.X,2)*pow(P1.Y-C.Y,2),
+		rYDenominator = (P1.X - P2.X) * (P1.X + P2.X - 2*C.X),
+		rY = (int)(sqrt( abs(rYNumerator / rYDenominator) ));
+
+	int rXNumerator = (rYNumerator/rYDenominator) * pow(P1.X-C.X, 2) ,
+		rXDenominator =  (rYNumerator/rYDenominator) - pow(P1.Y - C.Y, 2),
+		rX = (int)(sqrt( abs(rXNumerator / rXDenominator) ));
 
 	//Region 1
 	struct Point currentPt;
