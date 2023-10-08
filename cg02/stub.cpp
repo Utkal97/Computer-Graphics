@@ -267,68 +267,89 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 	P2.Y = ptY2;
 	C.X = centerX;
 	C.Y = centerY;
-	
-	int rYNumerator = pow(P2.Y - C.Y,2)*pow(P1.X-C.X,2) - pow(P2.X-C.X,2)*pow(P1.Y-C.Y,2),
-		rYDenominator = (P1.X - P2.X) * (P1.X + P2.X - 2*C.X),
-		rY = (int)(sqrt( abs(rYNumerator / rYDenominator) ));
+	// printf("Center: (%f, %f), Point1: (%f, %f), Point2: (%f, %f)\n", C.X, C.Y, P1.X, P1.Y, P2.X, P2.Y);
 
-	int rXNumerator = (rYNumerator/rYDenominator) * pow(P1.X-C.X, 2) ,
-		rXDenominator =  (rYNumerator/rYDenominator) - pow(P1.Y - C.Y, 2),
-		rX = (int)(sqrt( abs(rXNumerator / rXDenominator) ));
+	long double rY = pow(P1.X-C.X,2)/(P1.X - P2.X);
+		rY *= (P2.Y - P1.Y)/(P1.X + P2.X - 2*C.X);
+		rY *= (P2.Y + P1.Y - 2*C.Y);
+
+	if( (P2.X - P1.X==0) || (P1.X+P2.X-2*C.X==0) ) {
+		printf("We cannot compute Ry (vertical radius) since ptX1 and ptX2 are very close.\n");
+		return;
+	}
+
+	rY += pow(P1.Y-C.Y,2);
+	rY = sqrt(abs(rY));
+
+	double rX = (P1.X - P2.X)/(P2.Y - P1.Y);
+	rX *= (P1.X + P2.X - 2*C.X)/(P2.Y + P1.Y - 2*C.Y);
+
+	if( (P1.Y - P2.Y == 0) || (P2.Y+P1.Y-2*C.Y==0) ) {
+		printf("We cannot compute Rx (horizontal radius) since ptY1 and ptY2 are very close.\n");
+		return;
+	}
+
+	rX = sqrt(abs(rX));
+	rX *=  rY;
+
+	int Rx = (int)rX, Ry = (int)rY;
 
 	//Region 1
 	struct Point currentPt;
-	int X = 0, Y = rY;
-	printf("rX: %d , rY:%d\n", rX, rY);
-	float region1DecisionParameter = pow(rY,2) - (pow(rX,2)*rY) + (pow(rX,2)/4);
+	int X = 0, Y = Ry;
+	// printf("rX: %d , rY:%d\n", Rx, Ry);
+	
+	currentPt.X = C.X + X;
+	currentPt.Y = C.Y + Y;
+	drawPixel((int)currentPt.X, (int)currentPt.Y);
 
-	while( (2*pow(rY,2) * X) < (2*pow(rX,2) * Y) ) {	//RECHECK THIS CONDITION
-		currentPt.X = centerX + X;
-		currentPt.Y = centerY + Y;
-		printf("Plotting (%f, %f) , where X: %d, Y: %d\n", currentPt.X, currentPt.Y, X, Y );
-		drawPixel((int)currentPt.X, (int)currentPt.Y);
+	float region1DecisionParameter = pow(Ry,2) - (pow(Rx,2)*Ry) + (pow(Rx,2)/4);
+
+	while( (2*pow(Ry,2) * X) < (2*pow(Rx,2) * Y) ) {	//RECHECK THIS CONDITION
 
 		X += 1;
 		if(region1DecisionParameter < 0) {
-			region1DecisionParameter += 2*pow(rY,2)*X + pow(rY,2);
+			region1DecisionParameter += 2*pow(Ry,2)*X + pow(Ry,2);
 		} else {
 			Y -= 1;
-			region1DecisionParameter += 2*pow(rY,2)*X + pow(rY,2) - 2*pow(rX,2)*Y;
+			region1DecisionParameter += 2*pow(Ry,2)*X + pow(Ry,2) - 2*pow(Rx,2)*Y;
 		}
 
-		currentPt.X = centerX - X;
-		currentPt.Y = centerY + Y;
+		currentPt.X = C.X + X;
+		currentPt.Y = C.Y + Y;
+		drawPixel((int)currentPt.X, (int)currentPt.Y);
+		
+		currentPt.X = C.X - X;
+		currentPt.Y = C.Y + Y;
 		drawPixel((int)currentPt.X, (int)currentPt.Y);
 
-		currentPt.X = centerX - X;
-		currentPt.Y = centerY - Y;
+		currentPt.X = C.X - X;
+		currentPt.Y = C.Y - Y;
 		drawPixel((int)currentPt.X, (int)currentPt.Y);
 
-		currentPt.X = centerX + X;
-		currentPt.Y = centerY - Y;
+		currentPt.X = C.X + X;
+		currentPt.Y = C.Y - Y;
 		drawPixel((int)currentPt.X, (int)currentPt.Y);
 	}
-	printf("Region 1 is drawn, X: %d, Y: %d\n", X,Y);
 
 	//Region 2
-	float region2DecisionParameter = pow(rY,2)*pow(X + 0.5,2) 
-									 + pow(rX,2)*pow(Y-1,2)
-									 - pow(rX,2)*pow(rY, 2);
+	float region2DecisionParameter = pow(Ry,2)*pow(X + 0.5,2) 
+									 + pow(Rx,2)*pow(Y-1,2)
+									 - pow(Rx,2)*pow(Ry, 2);
 
-	while(Y>=0) {	//RECHECK THE CONDITION
-
-		currentPt.X = centerX + X;
-		currentPt.Y = centerY + Y;
-		printf("Plotting (%f, %f) , where X: %d, Y: %d\n", currentPt.X, currentPt.Y, X, Y );
-		drawPixel((int)currentPt.X, (int)currentPt.Y);
+	while(Y!=0) {	//RECHECK THE CONDITION
 
 		Y -= 1;
 		if(region2DecisionParameter > 0) {
-			region2DecisionParameter += pow(rX,2) - 2*pow(rX,2)*Y;
+			region2DecisionParameter += pow(Rx,2) - 2*pow(Rx,2)*Y;
  		} else {
 			X += 1;
-			region2DecisionParameter += pow(rX,2) - 2*pow(rX,2)*Y + 2*pow(rY,2)*X;
+			region2DecisionParameter += pow(Rx,2) - 2*pow(Rx,2)*Y + 2*pow(Ry,2)*X;
 		}
+
+		currentPt.X = centerX + X;
+		currentPt.Y = centerY + Y;
+		drawPixel((int)currentPt.X, (int)currentPt.Y);
 
 		currentPt.X = centerX - X;
 		currentPt.Y = centerY + Y;
@@ -342,7 +363,6 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 		currentPt.Y = centerY - Y;
 		drawPixel((int)currentPt.X, (int)currentPt.Y);
 	}
-	printf("Ellipse is drawn\n");
 	return;
 }
 
