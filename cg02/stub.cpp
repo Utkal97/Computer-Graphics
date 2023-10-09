@@ -375,8 +375,38 @@ void drawPoly(int ptX1, int ptY1, int ptX2, int ptY2)
 
 void drawQuinticBezier(int* ptX, int* ptY) {
 
-	drawPixel(ptX[0], ptY[0]);
-	//replace above line with your code
+	
+	int n = 5;		// We have 6 control points and can plot a polynomial of 5th order
+	
+	float totalPixels=500;		// Let's plot 500 Bezier Points
+	float C[6];		//Array containing Binomial Coefficients
+
+	//Computing Binomial Coefficients
+	for(int k=0; k<=n; k++) {
+		C[k] = 1.0;
+		for(int i=n;i>=k+1;i--) {
+			C[k] *= (float)i;
+		}
+		for(int i=n-k;i>=2; i--) {
+			C[k] /= (float)i;
+		}
+	}
+
+	//Computing and plotting 500 Bezier Points
+	for(int i=0; i<=totalPixels; i++) {
+		float u = ((float)i) / totalPixels;
+		// printf("\n\n\n i:%d, u:%f:-\n",i,u);
+
+		float x = 0.0, y = 0.0, blendFunctionValue;
+		for(int k=0; k<=n; k++) {
+			blendFunctionValue = C[k] * pow(u,(float)k) * pow(1.0-u,(float)n-(float)k);
+			x += (float)ptX[k] * blendFunctionValue;
+			y += (float)ptY[k] * blendFunctionValue;
+			// printf("k:%d  pow(u,k): %f  pow(1-u,n-k): %f   C[%d]:%f   blendFunctionValue: %f\n", k,pow(u,k), pow(1-u,n-k), k,C[k], blendFunctionValue);
+		}
+		drawPixel((int)x, (int)y);
+	}
+	return;
 }
 
 // BONUS TASKS
