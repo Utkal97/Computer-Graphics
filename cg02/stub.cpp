@@ -261,30 +261,30 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 
 	struct Point P1, P2, C;
 	
-	P1.X = ptX1;
-	P1.Y = ptY1;
-	P2.X = ptX2;
-	P2.Y = ptY2;
-	C.X = centerX;
-	C.Y = centerY;
+	P1.X = (float)ptX1;
+	P1.Y = (float)ptY1;
+	P2.X = (float)ptX2;
+	P2.Y = (float)ptY2;
+	C.X = (float)centerX;
+	C.Y = (float)centerY;
 	// printf("Center: (%f, %f), Point1: (%f, %f), Point2: (%f, %f)\n", C.X, C.Y, P1.X, P1.Y, P2.X, P2.Y);
 
-	long double rY = pow(P1.X-C.X,2)/(P1.X - P2.X);
-		rY *= (P2.Y - P1.Y)/(P1.X + P2.X - 2*C.X);
-		rY *= (P2.Y + P1.Y - 2*C.Y);
+	float rY = (P1.X-C.X)*(P1.X-C.X)/(P1.X - P2.X);
+		rY *= (P2.Y - P1.Y)/(P1.X + P2.X - 2.0*C.X);
+		rY *= (P2.Y + P1.Y - 2.0*C.Y);
 
-	if( (P2.X - P1.X==0) || (P1.X+P2.X-2*C.X==0) ) {
+	if( (P2.X - P1.X==0.0) || (P1.X+P2.X-2.0*C.X==0.0) ) {
 		printf("We cannot compute Ry (vertical radius) since ptX1 and ptX2 are very close.\n");
 		return;
 	}
 
-	rY += pow(P1.Y-C.Y,2);
+	rY += (P1.Y-C.Y)*(P1.Y-C.Y);
 	rY = sqrt(abs(rY));
 
 	double rX = (P1.X - P2.X)/(P2.Y - P1.Y);
-	rX *= (P1.X + P2.X - 2*C.X)/(P2.Y + P1.Y - 2*C.Y);
+	rX *= (P1.X + P2.X - 2.0*C.X)/(P2.Y + P1.Y - 2.0*C.Y);
 
-	if( (P1.Y - P2.Y == 0) || (P2.Y+P1.Y-2*C.Y==0) ) {
+	if( (P1.Y - P2.Y == 0.0) || (P2.Y+P1.Y-2*C.Y==0.0) ) {
 		printf("We cannot compute Rx (horizontal radius) since ptY1 and ptY2 are very close.\n");
 		return;
 	}
@@ -292,27 +292,27 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 	rX = sqrt(abs(rX));
 	rX *=  rY;
 
-	int Rx = (int)rX, Ry = (int)rY;
+	// int Rx = (int)rX, Ry = (int)rY;
 
 	//Region 1
 	struct Point currentPt;
-	int X = 0, Y = Ry;
+	float X = 0.0, Y = rY;
 	// printf("rX: %d , rY:%d\n", Rx, Ry);
 	
 	currentPt.X = C.X + X;
 	currentPt.Y = C.Y + Y;
 	drawPixel((int)currentPt.X, (int)currentPt.Y);
 
-	float region1DecisionParameter = pow(Ry,2) - (pow(Rx,2)*Ry) + (pow(Rx,2)/4);
+	float region1DecisionParameter = rY*rY - rX*rX*rY + ((rX*rX)/4);
 
-	while( (2*pow(Ry,2) * X) < (2*pow(Rx,2) * Y) ) {	//RECHECK THIS CONDITION
+	while( (2.0*rY*rY*X) < (2.0*rX*rX*Y) ) {	//RECHECK THIS CONDITION
 
-		X += 1;
-		if(region1DecisionParameter < 0) {
-			region1DecisionParameter += 2*pow(Ry,2)*X + pow(Ry,2);
+		X += 1.0;
+		if(region1DecisionParameter < 0.0) {
+			region1DecisionParameter += 2.0*rY*rY*X + rY*rY;
 		} else {
-			Y -= 1;
-			region1DecisionParameter += 2*pow(Ry,2)*X + pow(Ry,2) - 2*pow(Rx,2)*Y;
+			Y -= 1.0;
+			region1DecisionParameter += 2.0*rY*rY*X + rY*rY - 2.0*(rX*rX)*Y;
 		}
 
 		currentPt.X = C.X + X;
@@ -333,18 +333,18 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 	}
 
 	//Region 2
-	float region2DecisionParameter = pow(Ry,2)*pow(X + 0.5,2) 
-									 + pow(Rx,2)*pow(Y-1,2)
-									 - pow(Rx,2)*pow(Ry, 2);
+	float region2DecisionParameter = (rY*rY)*((X + 0.5)*(X+0.5)) 
+									 + (rX*rX)*(Y-1.0)*(Y-1.0)
+									 - (rX*rX)*(rY*rY);
 
-	while(Y!=0) {	//RECHECK THE CONDITION
+	while(Y>0.0) {	//RECHECK THE CONDITION
 
-		Y -= 1;
-		if(region2DecisionParameter > 0) {
-			region2DecisionParameter += pow(Rx,2) - 2*pow(Rx,2)*Y;
+		Y -= 1.0;
+		if(region2DecisionParameter > 0.0) {
+			region2DecisionParameter += rX*rX - 2.0*(rX*rX)*Y;
  		} else {
 			X += 1;
-			region2DecisionParameter += pow(Rx,2) - 2*pow(Rx,2)*Y + 2*pow(Ry,2)*X;
+			region2DecisionParameter += rX*rX - 2.0*(rX*rX)*Y + 2.0*(rY*rY)*X;
 		}
 
 		currentPt.X = centerX + X;
