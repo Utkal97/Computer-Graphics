@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <math.h>
 /***************************************************************************/
+#define degToRad(angleInDegrees) ((angleInDegrees) * M_PI / 180.0)
+#define radToDeg(angleInRadians) ((angleInRadians) * 180.0 / M_PI)
 // Forward declarations
 void drawPixel(int x, int y);
 
@@ -366,11 +368,81 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 	return;
 }
 
+float computeTaylorSeriesTerm(float x, int n) {
+
+	float  value = (n-1)%2==0 ? pow(x, (2*n) - 1) : (-1)*pow(x, (2*n) - 1);
+	float factorialValue = 1;
+	for(int i=2*n-1; i>1; i--) {
+		factorialValue *= i;
+	}
+	// printf("Term: %d  value: %f\n", n, value);
+	return value/factorialValue;
+}
+
+inline double _sin8(double radians)
+{ 
+    double x = radians;
+    double x2 = x*x;
+    double f = 1;
+    double s = 0;
+    int i = 1;
+
+    s += x/f; x *= x2; f *= ++i; f *= ++i;
+    s -= x/f; x *= x2; f *= ++i; f *= ++i;
+    s += x/f; x *= x2; f *= ++i; f *= ++i;
+    s -= x/f; x *= x2; f *= ++i; f *= ++i;
+    s += x/f; x *= x2; f *= ++i; f *= ++i;
+    s -= x/f; x *= x2; f *= ++i; f *= ++i;
+    s += x/f; x *= x2; f *= ++i; f *= ++i;
+    s -= x/f; x *= x2; f *= ++i; f *= ++i;
+
+    return s;
+}
+
+
 void drawPoly(int ptX1, int ptY1, int ptX2, int ptY2)
 {	
+
+	if(ptX1 > ptX2) {
+		int temp = ptX1;
+		ptX1 = ptX2;
+		ptX2 = temp;
+
+		temp = ptY1;
+		ptY1 = ptY2;
+		ptY2 = temp;
+	}
+
+	struct Point P1, P2;
+	P1.X = (float)ptX1;
+	P1.Y = (float)ptY1;
+	P2.X = (float)ptX2;
+	P2.Y = (float)ptY2;
+
 	drawPixel(ptX1, ptY1);
-	drawPixel(ptX2, ptY2);
-	//replace above two lines with your code
+
+	float minimumValue =  1e-5;
+	float xRad = M_PI/2, step = M_PI/(P2.X-P1.X);
+
+	while (xRad <= (3*M_PI/2)) {
+		xRad += step;
+		float sineValue = 0.0, 
+				amplitude = (P1.Y - P2.Y)/2,
+				yOffset = (P1.Y + P2.Y)/2,
+				n = 1,
+				taylorSeriesTerm = computeTaylorSeriesTerm( xRad, 1);
+
+		while(abs(taylorSeriesTerm) > minimumValue) {
+			sineValue += taylorSeriesTerm;
+			n++;
+			taylorSeriesTerm = computeTaylorSeriesTerm( xRad, n);
+		}
+		float x = (xRad-(M_PI/2))/step + P1.X;
+
+		drawPixel((int)(x), sineValue*amplitude + yOffset);
+	}
+
+	return;
 }
 
 void drawQuinticBezier(int* ptX, int* ptY) {
