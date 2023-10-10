@@ -269,7 +269,6 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 	P2.Y = (float)ptY2;
 	C.X = (float)centerX;
 	C.Y = (float)centerY;
-	// printf("Center: (%f, %f), Point1: (%f, %f), Point2: (%f, %f)\n", C.X, C.Y, P1.X, P1.Y, P2.X, P2.Y);
 
 	float rY = (P1.X-C.X)*(P1.X-C.X)/(P1.X - P2.X);
 		rY *= (P2.Y - P1.Y)/(P1.X + P2.X - 2.0*C.X);
@@ -294,12 +293,9 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 	rX = sqrt(abs(rX));
 	rX *=  rY;
 
-	// int Rx = (int)rX, Ry = (int)rY;
-
 	//Region 1
 	struct Point currentPt;
 	float X = 0.0, Y = rY;
-	// printf("rX: %d , rY:%d\n", Rx, Ry);
 	
 	currentPt.X = C.X + X;
 	currentPt.Y = C.Y + Y;
@@ -307,7 +303,7 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 
 	float region1DecisionParameter = rY*rY - rX*rX*rY + ((rX*rX)/4);
 
-	while( (2.0*rY*rY*X) < (2.0*rX*rX*Y) ) {	//RECHECK THIS CONDITION
+	while( (2.0*rY*rY*X) < (2.0*rX*rX*Y) ) {
 
 		X += 1.0;
 		if(region1DecisionParameter < 0.0) {
@@ -339,7 +335,7 @@ void drawEllipse(int centerX, int centerY, int ptX1, int ptY1, int ptX2, int ptY
 									 + (rX*rX)*(Y-1.0)*(Y-1.0)
 									 - (rX*rX)*(rY*rY);
 
-	while(Y>0.0) {	//RECHECK THE CONDITION
+	while(Y>0.0) {
 
 		Y -= 1.0;
 		if(region2DecisionParameter > 0.0) {
@@ -375,43 +371,12 @@ float computeTaylorSeriesTerm(float x, int n) {
 	for(int i=2*n-1; i>1; i--) {
 		factorialValue *= i;
 	}
-	// printf("Term: %d  value: %f\n", n, value);
+
 	return value/factorialValue;
 }
 
-inline double _sin8(double radians)
-{ 
-    double x = radians;
-    double x2 = x*x;
-    double f = 1;
-    double s = 0;
-    int i = 1;
-
-    s += x/f; x *= x2; f *= ++i; f *= ++i;
-    s -= x/f; x *= x2; f *= ++i; f *= ++i;
-    s += x/f; x *= x2; f *= ++i; f *= ++i;
-    s -= x/f; x *= x2; f *= ++i; f *= ++i;
-    s += x/f; x *= x2; f *= ++i; f *= ++i;
-    s -= x/f; x *= x2; f *= ++i; f *= ++i;
-    s += x/f; x *= x2; f *= ++i; f *= ++i;
-    s -= x/f; x *= x2; f *= ++i; f *= ++i;
-
-    return s;
-}
-
-
 void drawPoly(int ptX1, int ptY1, int ptX2, int ptY2)
-{	
-
-	if(ptX1 > ptX2) {
-		int temp = ptX1;
-		ptX1 = ptX2;
-		ptX2 = temp;
-
-		temp = ptY1;
-		ptY1 = ptY2;
-		ptY2 = temp;
-	}
+{
 
 	struct Point P1, P2;
 	P1.X = (float)ptX1;
@@ -422,13 +387,13 @@ void drawPoly(int ptX1, int ptY1, int ptX2, int ptY2)
 	drawPixel(ptX1, ptY1);
 
 	float minimumValue =  1e-5;
-	float xRad = M_PI/2, step = M_PI/(P2.X-P1.X);
+	float xRad = M_PI/2, step = M_PI/(P2.X-P1.X),
+			amplitude = (P1.Y - P2.Y)/2,
+			yOffset = (P1.Y + P2.Y)/2;
 
 	while (xRad <= (3*M_PI/2)) {
 		xRad += step;
-		float sineValue = 0.0, 
-				amplitude = (P1.Y - P2.Y)/2,
-				yOffset = (P1.Y + P2.Y)/2,
+		float sineValue = 0.0,
 				n = 1,
 				taylorSeriesTerm = computeTaylorSeriesTerm( xRad, 1);
 
@@ -437,6 +402,7 @@ void drawPoly(int ptX1, int ptY1, int ptX2, int ptY2)
 			n++;
 			taylorSeriesTerm = computeTaylorSeriesTerm( xRad, n);
 		}
+
 		float x = (xRad-(M_PI/2))/step + P1.X;
 
 		drawPixel((int)(x), sineValue*amplitude + yOffset);
@@ -449,8 +415,7 @@ void drawQuinticBezier(int* ptX, int* ptY) {
 
 	
 	int n = 5;		// We have 6 control points and can plot a polynomial of 5th order
-	
-	float totalPixels=500;		// Let's plot 500 Bezier Points
+	float totalPixels=2000;		// Let's plot 2000 Bezier Points
 	float C[6];		//Array containing Binomial Coefficients
 
 	//Computing Binomial Coefficients
@@ -464,17 +429,15 @@ void drawQuinticBezier(int* ptX, int* ptY) {
 		}
 	}
 
-	//Computing and plotting 500 Bezier Points
+	//Computing and plotting 2000 Bezier Points
 	for(int i=0; i<=totalPixels; i++) {
 		float u = ((float)i) / totalPixels;
-		// printf("\n\n\n i:%d, u:%f:-\n",i,u);
 
 		float x = 0.0, y = 0.0, blendFunctionValue;
 		for(int k=0; k<=n; k++) {
 			blendFunctionValue = C[k] * pow(u,(float)k) * pow(1.0-u,(float)n-(float)k);
 			x += (float)ptX[k] * blendFunctionValue;
 			y += (float)ptY[k] * blendFunctionValue;
-			// printf("k:%d  pow(u,k): %f  pow(1-u,n-k): %f   C[%d]:%f   blendFunctionValue: %f\n", k,pow(u,k), pow(1-u,n-k), k,C[k], blendFunctionValue);
 		}
 		drawPixel((int)x, (int)y);
 	}
@@ -497,8 +460,5 @@ void drawCardinalSpline(int* ptX, int* ptY, int controlPointCount) {
 }
 
 void drawCubicBSpline(int* ptX, int* ptY, int controlPointCount) {
-
-	drawPixel(ptX[0], ptY[0]);
-	//replace above line with your code
 }
 
