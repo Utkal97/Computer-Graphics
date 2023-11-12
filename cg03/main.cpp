@@ -4,9 +4,13 @@
 #include<GL/glut.h>
 #include<GL/gl.h>
 #include<GL/glu.h>
+#include<iostream>
+using namespace std;
 
 #define WIDTH 800
 #define HEIGHT 600
+
+int win_id=0;
 
 
 int projectionMode = 0;                     // 0 = Perspective, 1 = Orthographic
@@ -59,55 +63,51 @@ void project() {
 
 // Camera position and orientation :-
 struct Camera {
-    float xPos, yPos, zPos,
-        xRot, yRot, zRot;
+    float xPos = 0.0, yPos = 0.0, zPos = -10.0;
 };
 struct Camera camera;
 
-void setCamera(float xPos = 0.0f, float yPos = 0.0f, float zPos = -5.0f,
-    float xRot = 0.0f, float yRot = 0.0f, float zRot = 0.0f) {
+void setCamera(float xPos = 0.0f, float yPos = 0.0f, float zPos = -10.0f) {
 
     camera.xPos = xPos; 
     camera.yPos = yPos;
     camera.zPos = zPos;
-    camera.xRot = xRot;
-    camera.yRot = yRot;
-    camera.zRot = zRot;
 
     glTranslatef( camera.xPos, camera.yPos, camera.zPos);
-    glRotatef( camera.xRot, 1.0f, 0.0f, 0.0f);
-    glRotatef( camera.yRot, 0.0f, 1.0f, 0.0f);
-    glRotatef( camera.zRot, 0.0f, 0.0f, 1.0f);
 
+    glutPostRedisplay();
     return;
 }
 
 ////////// Objects :-
 struct Primitive {
     int shape;                      // 0 = Cube, 1 = Sphere, 2 = Torus, 3 = Cylinder
+    int primitive_id = -1;
     float xPos, yPos, zPos, xRot, yRot, zRot;
 };
 struct Primitive primitive;
 
-void setPrimitive(int shape, float xPos = 0.0f, float yPos = 0.0f, float zPos = 0.0f) {
+void setPrimitive(int shape = 0, float xPos = 0.0f, float yPos = 0.0f, float zPos = 0.0f, 
+    float xRot = 0.0f, float yRot = 0.0f, float zRot = 0.0f) {
     
     primitive.shape = shape;
 
-    primitive.xPos = 0.0f;
-    primitive.yPos = 0.0f;
-    primitive.zPos = 0.0f;
+    primitive.xPos = xPos;
+    primitive.yPos = yPos;
+    primitive.zPos = zPos;
 
-    primitive.xRot = 0.0f;
-    primitive.yRot = 0.0f;
-    primitive.zRot = 0.0f;
+    primitive.xRot = xRot;
+    primitive.yRot = yRot;
+    primitive.zRot = zRot;
 
     return;
 }
 
-void renderCube( float size, float centerX = 0.0f, float centerY = 0.0f, float centerZ = 0.0f) {
+void renderCube(float size) 
+{
 
-    float x = (size/2.0) + centerX,  y = (size/2.0) + centerY, z = (size/2.0) + centerZ;
-    float xNeg = -1.0*(size/2.0) + centerX, yNeg = -1.0*(size/2.0) + centerY, zNeg = -1.0*(size/2.0) + centerZ;
+    float x = (size/2.0) + primitive.xPos,  y = (size/2.0) + primitive.yPos, z = (size/2.0) + primitive.zPos;
+    float xNeg = -1.0*(size/2.0) + primitive.xPos, yNeg = -1.0*(size/2.0) + primitive.yPos, zNeg = -1.0*(size/2.0) + primitive.zPos;
 
     //Constructing cube as a set of 6 faces. Each face is formed by a Triangle Strip made of 2 triangles :-
 
@@ -119,26 +119,6 @@ void renderCube( float size, float centerX = 0.0f, float centerY = 0.0f, float c
         glVertex3f( xNeg, yNeg, zNeg );
         glVertex3f(    x,    y, zNeg );
         glVertex3f( xNeg,    y, zNeg );
-    glEnd();
-
-    //Right face
-    glBegin(GL_TRIANGLE_STRIP);
-        glColor3f( 0.0f, 1.0f, 0.0f);
-
-        glVertex3f( x, yNeg,    z);
-        glVertex3f( x,    y,    z);
-        glVertex3f( x, yNeg, zNeg);
-        glVertex3f( x,    y, zNeg);
-    glEnd();
-
-    //Left face
-    glBegin(GL_TRIANGLE_STRIP);
-        glColor3f( 0.0f, 1.0f, 1.0f);
-
-        glVertex3f( xNeg, yNeg,    z);
-        glVertex3f( xNeg,    y,    z);
-        glVertex3f( xNeg, yNeg, zNeg);
-        glVertex3f( xNeg,    y, zNeg);
     glEnd();
 
     //Top face
@@ -161,6 +141,26 @@ void renderCube( float size, float centerX = 0.0f, float centerY = 0.0f, float c
         glVertex3f(    x, yNeg, zNeg);
     glEnd();
 
+    //Right face
+    glBegin(GL_TRIANGLE_STRIP);
+        glColor3f( 0.0f, 1.0f, 0.0f);
+
+        glVertex3f( x, yNeg,    z);
+        glVertex3f( x,    y,    z);
+        glVertex3f( x, yNeg, zNeg);
+        glVertex3f( x,    y, zNeg);
+    glEnd();
+
+    //Left face
+    glBegin(GL_TRIANGLE_STRIP);
+        glColor3f( 0.0f, 1.0f, 1.0f);
+
+        glVertex3f( xNeg, yNeg,    z);
+        glVertex3f( xNeg,    y,    z);
+        glVertex3f( xNeg, yNeg, zNeg);
+        glVertex3f( xNeg,    y, zNeg);
+    glEnd();
+
     //Front face (nearest to camera)
     glBegin(GL_TRIANGLE_STRIP);
         glColor3f( 1.0f, 0.0f, 0.0f );
@@ -170,28 +170,75 @@ void renderCube( float size, float centerX = 0.0f, float centerY = 0.0f, float c
         glVertex3f(    x,    y, z);
         glVertex3f(    x, yNeg, z);
     glEnd();
-
     return;
 }
 
 void renderObject() {
     switch(primitive.shape) {
         case 0:
-            renderCube(2, 0.0, 0.0, 0.0);
+            renderCube(1);
             break;
         case 1:
         case 2:
         case 3:
         default:
             primitive.shape = 0;
-            renderCube(2, 0.0, 0.0, 0);
+            renderCube(1);
             break;
     }
     return;
 }
 
-void translate(int xPos, int yPos, int zPos) {
-    return renderCube(2, xPos, yPos, zPos);
+void translate(float x, float y, float z) {
+
+    printf("x: %f, y;%f z:%f\n", x,y,z);
+    
+    glMatrixMode(GL_MODELVIEW);
+
+    glPushMatrix();
+    
+        // GLfloat m[16];
+        // glGetFloatv(GL_MODELVIEW_MATRIX, m);
+        // cout << m[0] << ' ' << m[4] << ' ' << m[8] << ' ' << m[12] << endl;
+        // cout << m[1] << ' ' << m[5] << ' ' << m[9] << ' ' << m[13] << endl;
+        // cout << m[2] << ' ' << m[6] << ' ' << m[10] << ' ' << m[14] << endl;
+        // cout << m[3] << ' ' << m[7] << ' ' << m[11] << ' ' << m[15] << endl;
+            
+        glTranslatef(x, y, z);
+        renderObject();
+
+        // glGetFloatv(GL_MODELVIEW_MATRIX, m);
+        // cout << m[0] << ' ' << m[4] << ' ' << m[8] << ' ' << m[12] << endl;
+        // cout << m[1] << ' ' << m[5] << ' ' << m[9] << ' ' << m[13] << endl;
+        // cout << m[2] << ' ' << m[6] << ' ' << m[10] << ' ' << m[14] << endl;
+        // cout << m[3] << ' ' << m[7] << ' ' << m[11] << ' ' << m[15] << endl;
+
+    // glPopMatrix();
+    // glutPostRedisplay();
+    return;
+}
+
+void rotate(float x, float y, float z) {
+
+    // setPrimitive(primitive.shape, primitive.xPos, primitive.yPos, primitive.zPos,
+    //     primitive.xRot + x, primitive.yRot + y, primitive.zRot + z);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glPushMatrix();
+
+        // Apply the rotation
+        glRotatef(x, 1.0f, 0.0f, 0.0f);  // Rotate around the X-axis
+        glRotatef(y, 0.0f, 1.0f, 0.0f);  // Rotate around the Y-axis
+        glRotatef(z, 0.0f, 0.0f, 1.0f);  // Rotate around the Z-axis
+
+        // Render the object
+        renderObject();
+
+    glPopMatrix();
+
+    // glutPostRedisplay();
+    return;
 }
 ///////////
 
@@ -199,11 +246,9 @@ void display(void) {
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);   // Clear the background of our window to black
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);           // Clear the colour buffer (more buffers later on)
-
-    glLoadIdentity();                       // Load the Identity Matrix to reset our drawing locations
-    setCamera();                            // Specify Camera placement and orientation
     renderObject();                         // Render object based on the shape of primitive
     glFlush();                              // Flush the OpenGL buffers to the window
+    glutSwapBuffers();
 
 }
 
@@ -219,7 +264,10 @@ void reset() {
 
     //Reset to Perspective mode
     // projectionMode = 0;
+    glLoadIdentity();
+    setCamera();
 
+    setPrimitive();
     project();
     return;
 }
@@ -243,39 +291,47 @@ void keyPressed(unsigned char ch, int mouseX, int mouseY) {
 
         case 'a':
             printf("Translating object leftwards\n"); 
+            translate(-2.0, 0.0, 0.0);
             break;
 
         case 'd':
             printf("Translating object rightwards\n");
-            translate(5.0, 0.0, 0.0);
-            break;
-
-        case 'w':
-            printf("Translating object towards camera\n");
+            translate(2.0, 0.0, 0.0);
             break;
 
         case 's':
+            printf("Translating object towards camera\n");
+            translate(0.0, 0.0, 2.0);
+            break;
+
+        case 'w':
             printf("Translating object away from camera\n");
+            translate(0.0, 0.0, -2.0);
             break;
 
         case 'q':
             printf("Translating object upwards\n");
+            translate(0.0, 2.0, 0.0);
             break;
 
         case 'e':
             printf("Translating object downwards\n");
+            translate(0.0, -2.0, 0.0);
             break;
 
         case 'x':
             printf("Rotating object around X-axis anti-clockwise\n");
+            rotate(5.0, 0.0, 0.0);
             break;
         
         case 'y':
             printf("Rotating object around Y-axis anti-clockwise\n");
+            rotate(5.0, 0.0, 0.0);
             break;
 
         case 'z':
             printf("Rotating object around Z-axis anti-clockwise\n");
+            rotate(5.0, 0.0, 0.0);
             break;
 
         case '8':
@@ -297,10 +353,13 @@ void keyPressed(unsigned char ch, int mouseX, int mouseY) {
 
         case 'k':
             printf("Translating camera backwards\n");
+            setCamera(camera.xPos, camera.yPos, camera.zPos - 2.0);
+
             break;
 
         case 'i':
             printf("Translating camera forwards\n");
+            setCamera(camera.xPos, camera.yPos, camera.zPos + 2.0);
             break;
 
         case '0':
@@ -330,7 +389,10 @@ void keyPressed(unsigned char ch, int mouseX, int mouseY) {
         case '-':
             printf("Decrease Field of View\n");
             break;
-
+        case 27:
+            glutDestroyWindow ( win_id );
+            exit(0);
+            break;
         default:
             break;
     }
@@ -342,16 +404,20 @@ void specialKeyPressed(int ch, int mouseX, int mouseY) {
     switch(ch) {
         case GLUT_KEY_LEFT:
             printf("Translating camera leftwards\n");
+            setCamera(camera.xPos + 2.0, camera.yPos, camera.zPos);
             break;
         case GLUT_KEY_RIGHT:
             printf("Translating camera rightwards\n");
+            setCamera(camera.xPos - 2.0, camera.yPos, camera.zPos);
             break;
 
         case GLUT_KEY_UP:
             printf("Translating camera upwards\n");
+            setCamera( camera.xPos, camera.yPos -2.0, camera.zPos);
             break;
         case GLUT_KEY_DOWN:
             printf("Translating camera downwards\n");
+            setCamera(camera.xPos, camera.yPos + 2.0, camera.zPos);
             break;
     }
     return;
@@ -363,19 +429,22 @@ int main( int argc, char **argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(WIDTH, HEIGHT);       // Set the width and height of the window
-    glutInitWindowPosition(100, 100);        // Set the position of the window
+    glutInitWindowPosition(800, 100);        // Set the position of the window
+    win_id = glutCreateWindow("Assignment 3");
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
-    setView();                              // Specify the View parameters
-
-    glutCreateWindow("Assignment 3");
+    
+    glLoadIdentity();
+    setCamera();
     
     glutDisplayFunc(display);               // Set the displaying function as "display"
+    setView();                              // Specify the View parameters
     glutReshapeFunc(reshape);               // Set the reshaping function as "reshape"
     glutIdleFunc(display);                  // Set the displaying function when idle
+
     glutKeyboardFunc(keyPressed);           // Set the on-keypress function as "keyPressed"
     glutSpecialFunc(specialKeyPressed);     // Tell GLUT to use the method "keyPressed" for key presses
     // Set the depth function
     glDepthFunc(GL_LESS);
     glutMainLoop();                         // Enter GLUT's main loop
-}  
+}
