@@ -84,7 +84,7 @@ void setCamera(float xPos = 0.0f, float yPos = 0.0f, float zPos = -10.0f) {
     camera.xPos = xPos; 
     camera.yPos = yPos;
     camera.zPos = zPos;
-
+    glLoadIdentity();
     glTranslatef( camera.xPos, camera.yPos, camera.zPos);
 
     glutPostRedisplay();
@@ -202,8 +202,6 @@ void renderObject() {
 }
 
 void translate(float x, float y, float z) {
-
-    printf("x: %f, y;%f z:%f\n", x,y,z);
     
     glMatrixMode(GL_MODELVIEW);
 
@@ -225,19 +223,24 @@ void translate(float x, float y, float z) {
         // cout << m[2] << ' ' << m[6] << ' ' << m[10] << ' ' << m[14] << endl;
         // cout << m[3] << ' ' << m[7] << ' ' << m[11] << ' ' << m[15] << endl;
 
-    // glPopMatrix();
-    // glutPostRedisplay();
     printModelViewMatrix();
     return;
 }
 
+float reduceAngle(float x) {
+    while(x > 360.0f) {
+        x -= 360.0f;
+    }
+    return x;
+}
+
 void rotate(float x, float y, float z) {
 
-    // setPrimitive(primitive.shape, primitive.xPos, primitive.yPos, primitive.zPos,
-    //     primitive.xRot + x, primitive.yRot + y, primitive.zRot + z);
-    x = x >= 360.0 ? x % 360.0f : x;
-    y = y >= 360.0 ? y % 360.0f : y;
-    z = z >= 360.0 ? z % 360.0f : z;
+   
+    //To handle ever increasing Angle value from going out of range, keep it under 360 degrees
+    x = reduceAngle(x);
+    y = reduceAngle(y);
+    z = reduceAngle(z);
     
     glMatrixMode(GL_MODELVIEW);
 
