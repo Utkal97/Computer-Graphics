@@ -11,15 +11,27 @@ using namespace std;
 #define HEIGHT 600
 
 int win_id=0;
-
-
 int projectionMode = 0;                     // 0 = Perspective, 1 = Orthographic
+
+
 struct viewDetails {
     float fieldOfView, aspectRatio, nearField, farField,
         orthoLeft, orthoRight, orthoBottom, orthoTop;
 };
 
 struct viewDetails view;
+
+void printModelViewMatrix() {
+    GLfloat m[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, m);
+    cout << "Top most matrix in the stack:-" << endl;
+    cout << m[0] << ' ' << m[4] << ' ' << m[8] << ' ' << m[12] << endl;
+    cout << m[1] << ' ' << m[5] << ' ' << m[9] << ' ' << m[13] << endl;
+    cout << m[2] << ' ' << m[6] << ' ' << m[10] << ' ' << m[14] << endl;
+    cout << m[3] << ' ' << m[7] << ' ' << m[11] << ' ' << m[15] << endl;
+    return;
+}
+
 
 void setView(
         float fieldOfView = 60.0f, float aspectRatio = (GLfloat)WIDTH/(GLfloat)HEIGHT, 
@@ -196,7 +208,7 @@ void translate(float x, float y, float z) {
     glMatrixMode(GL_MODELVIEW);
 
     glPushMatrix();
-    
+    printModelViewMatrix();
         // GLfloat m[16];
         // glGetFloatv(GL_MODELVIEW_MATRIX, m);
         // cout << m[0] << ' ' << m[4] << ' ' << m[8] << ' ' << m[12] << endl;
@@ -215,6 +227,7 @@ void translate(float x, float y, float z) {
 
     // glPopMatrix();
     // glutPostRedisplay();
+    printModelViewMatrix();
     return;
 }
 
@@ -222,9 +235,12 @@ void rotate(float x, float y, float z) {
 
     // setPrimitive(primitive.shape, primitive.xPos, primitive.yPos, primitive.zPos,
     //     primitive.xRot + x, primitive.yRot + y, primitive.zRot + z);
-
+    x = x >= 360.0 ? x % 360.0f : x;
+    y = y >= 360.0 ? y % 360.0f : y;
+    z = z >= 360.0 ? z % 360.0f : z;
+    
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+
     glPushMatrix();
 
         // Apply the rotation
@@ -235,9 +251,19 @@ void rotate(float x, float y, float z) {
         // Render the object
         renderObject();
 
-    glPopMatrix();
+    // glPopMatrix();
 
     // glutPostRedisplay();
+    return;
+}
+
+void scale(float x, float y, float z) {
+    printModelViewMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glScalef(x,y,z);
+    renderObject();
+    printModelViewMatrix();
     return;
 }
 ///////////
@@ -299,12 +325,12 @@ void keyPressed(unsigned char ch, int mouseX, int mouseY) {
             translate(2.0, 0.0, 0.0);
             break;
 
-        case 's':
+        case 'w':
             printf("Translating object towards camera\n");
             translate(0.0, 0.0, 2.0);
             break;
 
-        case 'w':
+        case 's':
             printf("Translating object away from camera\n");
             translate(0.0, 0.0, -2.0);
             break;
@@ -321,29 +347,32 @@ void keyPressed(unsigned char ch, int mouseX, int mouseY) {
 
         case 'x':
             printf("Rotating object around X-axis anti-clockwise\n");
-            rotate(5.0, 0.0, 0.0);
+            rotate(20.0, 0.0, 0.0);
             break;
         
         case 'y':
             printf("Rotating object around Y-axis anti-clockwise\n");
-            rotate(5.0, 0.0, 0.0);
+            rotate(0.0, 20.0, 0.0);
             break;
 
         case 'z':
             printf("Rotating object around Z-axis anti-clockwise\n");
-            rotate(5.0, 0.0, 0.0);
+            rotate(0.0, 0.0, 20.0);
             break;
 
         case '8':
             printf("Scale up object along Y-axis\n");
+            scale(1.0, 2.0, 1.0);
             break;
 
         case '6':
             printf("Scale up object along X-axis\n");
+            scale(2.0, 1.0, 1.0);
             break;
 
         case '5':
             printf("Scale up object along Z-axis\n");
+            scale(1.0, 1.0, 2.0);
             break;
 
         case 't':
@@ -364,6 +393,8 @@ void keyPressed(unsigned char ch, int mouseX, int mouseY) {
 
         case '0':
             printf("Switching back to Cube\n");
+            primitive.shape = 0;
+            glutPostRedisplay();
             break;
 
         case '1':
@@ -383,12 +414,17 @@ void keyPressed(unsigned char ch, int mouseX, int mouseY) {
             break;
 
         case '+':
-            printf("Increase Field of View\n");
+            printf("Increase Field of View by 10\n");
+            view.fieldOfView += 10;
+            project();
             break;
 
         case '-':
-            printf("Decrease Field of View\n");
+            printf("Decrease Field of View by 10\n");
+            view.fieldOfView -= 10;
+            project();
             break;
+
         case 27:
             glutDestroyWindow ( win_id );
             exit(0);
