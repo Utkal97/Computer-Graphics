@@ -84,10 +84,15 @@ void setCamera(float xPos = 0.0f, float yPos = 0.0f, float zPos = -10.0f) {
     camera.xPos = xPos; 
     camera.yPos = yPos;
     camera.zPos = zPos;
-    glLoadIdentity();
+
     glTranslatef( camera.xPos, camera.yPos, camera.zPos);
 
     glutPostRedisplay();
+    return;
+}
+
+void translateCamera(float x, float y, float z) {
+    glTranslatef( x, y, z);
     return;
 }
 
@@ -385,13 +390,12 @@ void keyPressed(unsigned char ch, int mouseX, int mouseY) {
 
         case 'k':
             printf("Translating camera backwards\n");
-            setCamera(camera.xPos, camera.yPos, camera.zPos - 2.0);
-
+            translateCamera(0.0, 0.0, -2.0);
             break;
 
         case 'i':
             printf("Translating camera forwards\n");
-            setCamera(camera.xPos, camera.yPos, camera.zPos + 2.0);
+            translateCamera(0.0, 0.0, 2.0);
             break;
 
         case '0':
@@ -443,20 +447,21 @@ void specialKeyPressed(int ch, int mouseX, int mouseY) {
     switch(ch) {
         case GLUT_KEY_LEFT:
             printf("Translating camera leftwards\n");
-            setCamera(camera.xPos + 2.0, camera.yPos, camera.zPos);
+            translateCamera(2.0, 0.0, 0.0);
             break;
         case GLUT_KEY_RIGHT:
             printf("Translating camera rightwards\n");
-            setCamera(camera.xPos - 2.0, camera.yPos, camera.zPos);
+
+            translateCamera(-2.0, 0.0, 0.0);
             break;
 
         case GLUT_KEY_UP:
             printf("Translating camera upwards\n");
-            setCamera( camera.xPos, camera.yPos -2.0, camera.zPos);
+            translateCamera(0.0, -2.0, 0.0);
             break;
         case GLUT_KEY_DOWN:
             printf("Translating camera downwards\n");
-            setCamera(camera.xPos, camera.yPos + 2.0, camera.zPos);
+            translateCamera(0.0, 2.0, 0.0);
             break;
     }
     return;
