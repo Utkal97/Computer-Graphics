@@ -190,6 +190,11 @@ void renderCube(float size)
     return;
 }
 
+void renderCylinder(float radius, float height) {
+    float y = (height/2.0) + primitive.yPos, yNeg = -1 * (height/2.0) + primitive.yPos;
+    return;
+}
+
 void renderObject() {
     switch(primitive.shape) {
         case 0:

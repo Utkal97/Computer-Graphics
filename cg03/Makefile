@@ -10,13 +10,12 @@ TARGETS = $(PROGFILES:.cpp=)
 
 PROGFILES = \
         main.cpp \
-        stub.cpp \
         $(NULL)
 
 targets default: $(TARGETS)
 
-$(PROGFILES:.cpp=): main.o stub.o
-	$(CC) -o cg03 main.o stub.o ${LFLAGS}
+$(PROGFILES:.cpp=): main.o
+	$(CC) -o cg03 main.o ${LFLAGS}
 
 depend :
 	makedepend ${PROGFILES}
