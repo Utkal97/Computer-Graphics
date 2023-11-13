@@ -5,6 +5,7 @@
 #include<GL/gl.h>
 #include<GL/glu.h>
 #include<iostream>
+#include<cmath>
 using namespace std;
 
 #define WIDTH 800
@@ -98,7 +99,7 @@ void translateCamera(float x, float y, float z) {
 
 ////////// Objects :-
 struct Primitive {
-    int shape;                      // 0 = Cube, 1 = Sphere, 2 = Torus, 3 = Cylinder
+    int shape;                      // 0 = Cube, 1 = Sphere, 2 = Torus, 3 = Cylinder, 4 = Cone
     int primitive_id = -1;
     float xPos, yPos, zPos, xRot, yRot, zRot;
 };
@@ -191,9 +192,106 @@ void renderCube(float size)
 }
 
 void renderCylinder(float radius, float height) {
-    float y = (height/2.0) + primitive.yPos, yNeg = -1 * (height/2.0) + primitive.yPos;
+    const int numSegments = 30;  // You can adjust this value for more or fewer segments
+    
+    // Render the top face (triangle fan)
+    glBegin(GL_TRIANGLE_FAN);
+    glColor3f(0.0f, 1.0f, 0.0f);  // Green color for the top face
+    
+    glVertex3f(0.0f, height / 2.0f, 0.0f);  // Center of the top face
+    
+    for (int i = 0; i <= numSegments; ++i) {
+        float theta = 2.0f * M_PI * static_cast<float>(i) / static_cast<float>(numSegments);
+        float x = radius * cos(theta);
+        float z = radius * sin(theta);
+        glVertex3f(x, height / 2.0f, z);
+    }
+    
+    glEnd();
+
+    // Render the bottom face (triangle fan)
+    glBegin(GL_TRIANGLE_FAN);
+    glColor3f(0.0f, 0.0f, 1.0f);  // Blue color for the bottom face
+    
+    glVertex3f(0.0f, -height / 2.0f, 0.0f);  // Center of the bottom face
+    
+    for (int i = 0; i <= numSegments; ++i) {
+        float theta = 2.0f * M_PI * static_cast<float>(i) / static_cast<float>(numSegments);
+        float x = radius * cos(theta);
+        float z = radius * sin(theta);
+        glVertex3f(x, -height / 2.0f, z);
+    }
+    
+    glEnd();
+
+    // Render the sides (quads)
+    glBegin(GL_QUADS);
+    glColor3f(1.0f, 1.0f, 1.0f);  // White color for the sides
+
+    for (int i = 0; i < numSegments; ++i) {
+        float theta1 = 2.0f * M_PI * static_cast<float>(i) / static_cast<float>(numSegments);
+        float theta2 = 2.0f * M_PI * static_cast<float>(i + 1) / static_cast<float>(numSegments);
+
+        float x1 = radius * cos(theta1);
+        float z1 = radius * sin(theta1);
+
+        float x2 = radius * cos(theta2);
+        float z2 = radius * sin(theta2);
+
+        // Four vertices for each quad
+        glVertex3f(x1, height / 2.0f, z1);
+        glVertex3f(x1, -height / 2.0f, z1);
+        glVertex3f(x2, -height / 2.0f, z2);
+        glVertex3f(x2, height / 2.0f, z2);
+    }
+
+    glEnd();
+}
+
+void renderCone(float radius, float height) {
+    const int numSegments = 30;  // You can adjust this value for more or fewer segments
+    
+    // Render the base (triangle fan)
+    glBegin(GL_TRIANGLE_FAN);
+    glColor3f(0.0f, 1.0f, 0.0f);  // Green color for the base
+    
+    glVertex3f(0.0f, -height / 2.0f, 0.0f);  // Center of the base
+    
+    for (int i = 0; i <= numSegments; ++i) {
+        float theta = 2.0f * M_PI * static_cast<float>(i) / static_cast<float>(numSegments);
+        float x = radius * cos(theta);
+        float z = radius * sin(theta);
+        glVertex3f(x, -height / 2.0f, z);
+    }
+    
+    glEnd();
+
+    // Render the sides (triangles)
+    glBegin(GL_TRIANGLES);
+    glColor3f(1.0f, 1.0f, 1.0f);  // White color for the sides
+
+    for (int i = 0; i < numSegments; ++i) {
+        float theta1 = 2.0f * M_PI * static_cast<float>(i) / static_cast<float>(numSegments);
+        float theta2 = 2.0f * M_PI * static_cast<float>(i + 1) / static_cast<float>(numSegments);
+
+        float x1 = radius * cos(theta1);
+        float z1 = radius * sin(theta1);
+
+        float x2 = radius * cos(theta2);
+        float z2 = radius * sin(theta2);
+
+        // Apex of the cone
+        glVertex3f(0.0f, height / 2.0f, 0.0f);
+
+        // Two vertices for each triangle
+        glVertex3f(x1, -height / 2.0f, z1);
+        glVertex3f(x2, -height / 2.0f, z2);
+    }
+
+    glEnd();
     return;
 }
+
 
 void renderObject() {
     switch(primitive.shape) {
@@ -202,7 +300,12 @@ void renderObject() {
             break;
         case 1:
         case 2:
-        case 3:
+        case 3:       
+            renderCylinder(2.0, 3.0);
+            break;
+        case 4:
+            renderCone(2.0, 3.0);
+            break;
         default:
             primitive.shape = 0;
             renderCube(1);
@@ -430,10 +533,13 @@ void keyPressed(unsigned char ch, int mouseX, int mouseY) {
                 
         case '3':
             printf("Switching to Cone\n");
+            primitive.shape = 4;
             break;
 
         case 'c':
             printf("Switching to Cylinder\n");
+            primitive.shape = 3;
+            renderObject();
             break;
 
         case '+':
