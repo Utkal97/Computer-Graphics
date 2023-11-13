@@ -299,15 +299,26 @@ void reshape( int width, int height) {
     return;
 }
 
+void clearModelViewStack() {
+    
+    glMatrixMode(GL_MODELVIEW);
+    while (glGetError() != GL_STACK_UNDERFLOW) {    // Until Matrix stack is empty
+        glPopMatrix();                              // Pop each matrix on stack
+    }
+
+    glLoadIdentity();                               // Load Identity matrix again
+    return;
+}
+
 void reset() {
 
-    //Reset to Perspective mode
-    // projectionMode = 0;
-    glLoadIdentity();
-    setCamera();
+    clearModelViewStack();                          // Clear the ModelView stack
 
-    setPrimitive();
+    setView();                                      // Set the default values for Projection Parameters
+    setCamera();                                    // Set the default values for View parameters
+    setPrimitive();                                 // Set the default values for Model parameters
     project();
+    glutPostRedisplay();
     return;
 }
 
